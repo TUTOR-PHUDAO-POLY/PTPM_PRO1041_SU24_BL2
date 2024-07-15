@@ -38,7 +38,10 @@ public class KhachHangRepository {
                            ,[TrangThai]
                            ,[GioiTinh]
                        FROM [dbo].[KhachHang]
+                     WHERE [TrangThai] = 1
                      """;
+        // Xoa mem => Chi xoa truoc mat nguoi dung trong CSDL => Van con 
+        // => PK : Khoa ngoai
         // B2: Ket noi vs SQL 
         // try..with resource
         try (Connection con = DBConnect.getConnection();
@@ -68,5 +71,89 @@ public class KhachHangRepository {
             e.printStackTrace(System.out);
         }
         return lists;
+    }
+
+    public boolean delete(Integer id) {
+        String sql = """
+              UPDATE [dbo].[KhachHang]
+                  SET 
+                     [TrangThai] = 0
+                WHERE id=?
+               """;
+        int check = 0;
+        try (Connection con = DBConnect.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setObject(1, id);
+            check = ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+        }
+        return check > 0;
+    }
+
+    public boolean add(KhachHang kh) {
+        String sql = """
+                 INSERT INTO [dbo].[KhachHang]
+                            ([Ma]
+                            ,[Ten]
+                            ,[TenDem]
+                            ,[Ho]
+                            ,[NgaySinh]
+                            ,[Sdt]
+                            ,[DiaChi]
+                            ,[ThanhPho]
+                            ,[QuocGia]
+                            ,[MatKhau]
+                            ,[TrangThai]
+                            ,[GioiTinh])
+                      VALUES
+                            (?,?,?,?,?,?,?,?,?,?,1,?)
+               """;
+        int check = 0;
+        try (Connection con = DBConnect.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setObject(1, kh.getMa());
+            ps.setObject(2, kh.getTen());
+            ps.setObject(3, kh.getTenDem());
+            ps.setObject(4, kh.getHo());
+            ps.setObject(5, kh.getNgaySinh());
+            ps.setObject(6, kh.getSdt());
+            ps.setObject(7, kh.getDiaChi());
+            ps.setObject(8, kh.getThanhPho());
+            ps.setObject(9, kh.getQuocGia());
+            ps.setObject(10, kh.getMatKhau());
+            ps.setObject(11, kh.getGioiTinh());
+            check = ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+        }
+        return check > 0;
+    }
+
+    public boolean update(KhachHang kh, Integer id) {
+        String sql = """
+                UPDATE [dbo].[KhachHang]
+                    SET [Ma] = ?
+                       ,[Ten] = ?
+                       ,[Sdt] = ?
+                       ,[DiaChi] = ?
+                       ,[ThanhPho] = ?
+                       ,[QuocGia] = ?
+                       ,[GioiTinh] = ?
+                  WHERE ID = ?
+               """;
+        int check = 0;
+        try (Connection con = DBConnect.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setObject(1, kh.getMa());
+            ps.setObject(2, kh.getTen());
+            ps.setObject(3, kh.getSdt());
+            ps.setObject(4, kh.getDiaChi());
+            ps.setObject(5, kh.getThanhPho());
+            ps.setObject(6, kh.getQuocGia());
+            ps.setObject(7, kh.getGioiTinh());
+            ps.setObject(8, id);
+            check = ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+        }
+        return check > 0;
     }
 }
