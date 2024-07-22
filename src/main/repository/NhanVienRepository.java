@@ -31,6 +31,7 @@ public class NhanVienRepository {
                      FROM     dbo.ChucVu INNER JOIN
                                        dbo.NhanVien
                      ON dbo.ChucVu.Id = dbo.NhanVien.IdCV
+                     WHERE [TrangThai] = 1
                      """;
 
         try (Connection con = DBConnect.getConnection();
@@ -44,7 +45,7 @@ public class NhanVienRepository {
                         .tenNhanVien(rs.getString(3))
                         .diaChi(rs.getString(4))
                         .soDienThoai(rs.getString(5))
-                        .gioiTinh(rs.getBoolean(6))
+                        .gioiTinh(rs.getString(6))
                         .maChucVu(rs.getString(7))
                         .tenChucVu(rs.getString(8))
                         .build();
@@ -55,4 +56,22 @@ public class NhanVienRepository {
         }
         return lists;
     }
+    
+    public boolean delete(Integer id) {
+        String sql = """
+              UPDATE [dbo].[NhanVien]
+                  SET 
+                     [TrangThai] = 0
+                WHERE id=?
+               """;
+        int check = 0;
+        try (Connection con = DBConnect.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setObject(1, id);
+            check = ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+        }
+        return check > 0;
+    }
+    
 }

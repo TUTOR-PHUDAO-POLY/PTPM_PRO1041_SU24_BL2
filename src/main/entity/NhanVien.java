@@ -48,6 +48,6 @@ public class NhanVien {
 
     private Integer trangThai;
 
-    private Integer gioiTinh;
+    private String gioiTinh;
 
 }

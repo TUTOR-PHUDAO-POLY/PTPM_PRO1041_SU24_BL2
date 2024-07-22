@@ -38,7 +38,7 @@ public class NhanVienResponse {
     
     private String tenChucVu;
     
-    private Boolean gioiTinh;
+    private String gioiTinh;
     
     private String maChucVu;
     

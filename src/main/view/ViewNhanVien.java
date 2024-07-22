@@ -4,6 +4,13 @@
  */
 package main.view;
 
+import java.util.List;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.table.DefaultTableModel;
+import main.entity.ChucVu;
+import main.repository.ChucVuRepository;
+import main.repository.NhanVienRepository;
+import main.response.NhanVienResponse;
 
 /**
  *
@@ -11,6 +18,10 @@ package main.view;
  */
 public class ViewNhanVien extends javax.swing.JFrame {
 
+    private DefaultTableModel dtm;
+    private DefaultComboBoxModel comboBoxModel;
+    private NhanVienRepository nhanVienRepository = new NhanVienRepository();
+    private ChucVuRepository chucVuRepository = new ChucVuRepository();
 
     // 1. Hoa don - Load table hoa don 
     // 2. Ban hang - Load table hoa don + load table san pham
@@ -19,10 +30,34 @@ public class ViewNhanVien extends javax.swing.JFrame {
      */
     public ViewNhanVien() {
         initComponents();
-      
+        dtm = (DefaultTableModel) tbNhanVien.getModel();
+        comboBoxModel = (DefaultComboBoxModel) cbbChucVu.getModel();
+        showTable(nhanVienRepository.getAll());
+        loadCBB(chucVuRepository.getAll());
     }
-    
-   
+
+    public void loadCBB(List<ChucVu> list) {
+        comboBoxModel.removeAllElements();
+        for (ChucVu chucVu : list) {
+            comboBoxModel.addElement(chucVu.getMa());
+        }
+    }
+
+    public void showTable(List<NhanVienResponse> list) {
+        dtm.setRowCount(0);
+        for (int i = 0; i < list.size(); i++) {
+            NhanVienResponse nv = list.get(i);
+            dtm.addRow(new Object[]{
+                i + 1,
+                nv.getMaChucVu(),
+                nv.getTenNhanVien(),
+                nv.getSoDienThoai(),
+                nv.getDiaChi(),
+                nv.getTenChucVu(),
+                nv.getGioiTinh()
+            });
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -218,21 +253,40 @@ public class ViewNhanVien extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnXoaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnXoaActionPerformed
-       
+        int index = tbNhanVien.getSelectedRow();
+        if (index >= 0) {
+            nhanVienRepository.delete(nhanVienRepository.getAll().get(index).getId());
+            showTable(nhanVienRepository.getAll());
+        }
     }//GEN-LAST:event_btnXoaActionPerformed
 
     private void btnThemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThemActionPerformed
-       
+
     }//GEN-LAST:event_btnThemActionPerformed
 
     private void btnSuaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSuaActionPerformed
-      
+
     }//GEN-LAST:event_btnSuaActionPerformed
 
     private void tbNhanVienMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbNhanVienMouseClicked
+        detail(tbNhanVien.getSelectedRow());
     }//GEN-LAST:event_tbNhanVienMouseClicked
-    
-   
+
+    private void detail(int index) {
+        NhanVienResponse response = nhanVienRepository.getAll().get(index);
+        List<ChucVu> listCV = chucVuRepository.getAll();
+        txtMa.setText(response.getMaNhanVien());
+        txtTen.setText(response.getTenNhanVien());
+        txtDiaChi.setText(response.getDiaChi());
+        txtSDT.setText(response.getSoDienThoai());
+        rdNam.setSelected(response.getGioiTinh().equals("Nam"));
+        rdNu.setSelected(!response.getGioiTinh().equals("Nam"));
+        for (int i = 0; i < listCV.size(); i++) {
+            if (listCV.get(i).getMa().equals(response.getMaChucVu())) {
+                comboBoxModel.setSelectedItem(listCV.get(i).getMa());
+            }
+        }
+    }
 
     /**
      * @param args the command line arguments
