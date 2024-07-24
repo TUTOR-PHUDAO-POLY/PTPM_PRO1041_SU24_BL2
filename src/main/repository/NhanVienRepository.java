@@ -9,6 +9,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import main.config.DBConnect;
+import main.entity.NhanVien;
+import main.request.FindNhanVien;
+import main.request.NhanVienRequest;
 import main.response.NhanVienResponse;
 
 /**
@@ -17,29 +20,43 @@ import main.response.NhanVienResponse;
  */
 public class NhanVienRepository {
 
-    public ArrayList<NhanVienResponse> getAll() {
+    public ArrayList<NhanVienResponse> getAll(FindNhanVien fnv) {
         // B1: Tao ra doi tuong ArrayList 
         ArrayList<NhanVienResponse> lists = new ArrayList<>();
         // Code 
         // B2: Tao SQL 
         String sql = """
-                     SELECT dbo.NhanVien.Id, dbo.NhanVien.Ma, 
+                     SELECT dbo.NhanVien.Id, 
+                     dbo.NhanVien.Ma, 
                      dbo.NhanVien.Ten,
-                     dbo.NhanVien.DiaChi, dbo.NhanVien.Sdt, 
+                     dbo.NhanVien.DiaChi, 
+                     dbo.NhanVien.Sdt, 
                      dbo.NhanVien.GioiTinh, 
-                     dbo.ChucVu.Ma AS Expr1, dbo.ChucVu.Ten AS Expr2
+                     dbo.ChucVu.Ma AS Expr1, 
+                     dbo.ChucVu.Ten AS Expr2
                      FROM     dbo.ChucVu INNER JOIN
                                        dbo.NhanVien
                      ON dbo.ChucVu.Id = dbo.NhanVien.IdCV
                      WHERE [TrangThai] = 1
+                     AND dbo.NhanVien.GioiTinh LIKE ?
+                     AND dbo.ChucVu.Id = ?
+                     AND (dbo.NhanVien.Ma LIKE ? 
+                         OR dbo.NhanVien.Ten LIKE ?
+                         OR dbo.NhanVien.DiaChi LIKE ?
+                         OR dbo.NhanVien.Sdt LIKE ?)
                      """;
 
-        try (Connection con = DBConnect.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)) {
+        try (Connection con = DBConnect.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setObject(1, fnv.getGioiTinh());
+            ps.setObject(2, fnv.getIdCV());
+            ps.setObject(3, "%"+fnv.getKeySearch()+"%");
+            ps.setObject(4, "%"+fnv.getKeySearch()+"%");
+            ps.setObject(5, "%"+fnv.getKeySearch()+"%");
+            ps.setObject(6, "%"+fnv.getKeySearch()+"%");
             ResultSet rs = ps.executeQuery(); // Tra ra du lieu 1 bang 
             while (rs.next()) {
                 NhanVienResponse response = NhanVienResponse.builder()
-                            // tu cham not cac thuoc tinh 
+                        // tu cham not cac thuoc tinh 
                         .id(rs.getInt(1))
                         .maNhanVien(rs.getString(2))
                         .tenNhanVien(rs.getString(3))
@@ -56,7 +73,7 @@ public class NhanVienRepository {
         }
         return lists;
     }
-    
+
     public boolean delete(Integer id) {
         String sql = """
               UPDATE [dbo].[NhanVien]
@@ -73,5 +90,32 @@ public class NhanVienRepository {
         }
         return check > 0;
     }
-    
+
+    public boolean add(NhanVienRequest nv) {
+        String sql = """
+              INSERT INTO NhanVien 
+                     (Ma, 
+                     Ten,
+                     Sdt,
+                     GioiTinh,
+                     DiaChi,
+                     IdCV,
+                     TrangThai) 
+                     VALUES(?, ?, ?, ?, ?,?,1);
+               """;
+        int check = 0;
+        try (Connection con = DBConnect.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setObject(1, nv.getMa());
+            ps.setObject(2, nv.getTen());
+            ps.setObject(3, nv.getSdt());
+            ps.setObject(4, nv.getGioiTinh());
+            ps.setObject(5, nv.getDiaChi());
+            ps.setObject(6, nv.getIdCV());
+            check = ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+        }
+        return check > 0;
+    }
+
 }
